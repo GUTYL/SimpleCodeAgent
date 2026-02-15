@@ -13,7 +13,11 @@ client = OpenAI(
 )
 MODEL = os.getenv("MODEL_NAME", "gpt-4o")
 
-SYSTEM_PROMPT = """你是一个代码助手 Agent。你可以通过工具来读写文件、执行命令和浏览目录结构。
+WORKDIR = os.path.join(os.getcwd(), "action")
+os.makedirs(WORKDIR, exist_ok=True)
+
+SYSTEM_PROMPT = f"""你是一个代码助手 Agent。你可以通过工具来读写文件、执行命令和浏览目录结构。
+所有操作都在工作目录 {WORKDIR} 下进行，文件路径均为相对于该目录的相对路径。
 请根据用户的需求，合理调用工具来完成任务。每次操作后观察结果，决定下一步行动。"""
 
 TOOLS = [
@@ -77,7 +81,15 @@ TOOLS = [
 ]
 
 
+def _resolve(path: str) -> str:
+    """将相对路径解析为 WORKDIR 下的绝对路径。"""
+    if os.path.isabs(path):
+        return path
+    return os.path.join(WORKDIR, path)
+
+
 def read_file(path: str) -> str:
+    path = _resolve(path)
     try:
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
@@ -86,6 +98,7 @@ def read_file(path: str) -> str:
 
 
 def write_file(path: str, content: str) -> str:
+    path = _resolve(path)
     try:
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -98,7 +111,8 @@ def write_file(path: str, content: str) -> str:
 def run_command(command: str) -> str:
     try:
         result = subprocess.run(
-            command, shell=True, capture_output=True, text=True, timeout=30
+            command, shell=True, capture_output=True, text=True, timeout=30,
+            cwd=WORKDIR,
         )
         output = result.stdout
         if result.stderr:
@@ -113,6 +127,7 @@ def run_command(command: str) -> str:
 
 
 def list_files(path: str = ".") -> str:
+    path = _resolve(path)
     try:
         entries = []
         for root, dirs, files in os.walk(path):
@@ -173,7 +188,8 @@ def chat(user_input: str, messages: list) -> str:
 
 
 def main():
-    print("Code Agent 已启动（输入 exit 退出）")
+    print(f"Code Agent 已启动（工作目录: {WORKDIR}）")
+    print("输入 exit 退出")
     print("-" * 40)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 

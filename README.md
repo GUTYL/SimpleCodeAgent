@@ -23,6 +23,10 @@ uv run agent.py
 | `OPENAI_BASE_URL` | API 地址，兼容任何 OpenAI 格式的接口 | `https://api.openai.com/v1` |
 | `MODEL_NAME` | 模型名称 | `gpt-4o` |
 
+## 工作目录
+
+所有文件操作和命令执行都在 `./action` 目录下进行（启动时自动创建），不会影响项目本身的文件。
+
 ## 内置工具
 
 | 工具 | 参数 | 作用 |
@@ -31,6 +35,8 @@ uv run agent.py
 | `write_file` | `path`, `content` | 写入文件（自动创建目录） |
 | `run_command` | `command` | 执行 shell 命令（30s 超时） |
 | `list_files` | `path`（默认 `.`） | 列出目录树 |
+
+路径均相对于 `./action` 目录。
 
 ## 使用示例
 
