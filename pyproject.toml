@@ -1,0 +1,9 @@
+[project]
+name = "codeagent"
+version = "0.1.0"
+description = "最简洁的 LLM 驱动代码助手"
+requires-python = ">=3.10"
+dependencies = [
+    "openai",
+    "python-dotenv",
+]
